@@ -1,6 +1,6 @@
 ### clear your environment
 rm(list = ls())
-### unload user installed packages 
+### unload user installed packages
 invisible(lapply(paste0("package:", names(sessionInfo()$otherPkgs)), detach,character.only = TRUE, unload = TRUE))
 
 ### Setting your working directory
@@ -34,7 +34,16 @@ dat$PAR=as.numeric(dat$PAR)
 head(dat)
 str(dat)
 
-### creating a cleaned dataset 
+#or (if tidyverse is an option)
+library(tidyverse)
+library(lubridate)
+dat <- read_csv("https://lter.kbs.msu.edu/datatables/12.csv", comment="#")
+#not sure why you'd want to
+dat$DOY=yday(dat$date)
+dat$month=month(dat$datetime)
+dat$year=year(dat$datetime)
+
+### creating a cleaned dataset
 dat_clean=as.data.frame(dat$date)
 names(dat_clean)[1] <- "date"
 
@@ -69,7 +78,7 @@ ggplot(dat,aes(x=as.Date(date),y=soil_temp))+
 #geom_histogram()
 ## newer than 1995 older than 2016
 dat$soil_temp[dat$date<"1995/01/01"]  <- NA
-dat$soil_temp[dat$date>"2017/01/01"]  <- NA 
+dat$soil_temp[dat$date>"2017/01/01"]  <- NA
 dat_clean$soil_temp=dat$soil_temp
 
 dat_clean$DOY=yday(dat_clean$date)
@@ -87,8 +96,8 @@ dat_clean$precip_gs[dat_clean$month<4]  <-NA
 dat_clean$precip_gs[dat_clean$month>10]  <-  NA
 
 library(tidyr)
-dat_sum=dat_clean %>% 
-  group_by(year) %>% 
+dat_sum=dat_clean %>%
+  group_by(year) %>%
   mutate(cumulative_precip_gs = cumsum(replace_na(precip_gs, 0)))
 
 ggplot(dat_sum,aes(x=as.Date(DOY,origin='2022-01-01'),
@@ -96,8 +105,8 @@ ggplot(dat_sum,aes(x=as.Date(DOY,origin='2022-01-01'),
   geom_point(aes(color=as.factor(year)))+
   scale_x_date(date_labels="%b")
 
-dat_sum_2=dat_sum %>% 
-  group_by(year) %>% 
+dat_sum_2=dat_sum %>%
+  group_by(year) %>%
   filter(year!=2022)%>%
   summarise(total_cumulative_precip_gs = max(cumulative_precip_gs),
             mean_air_temp=mean(air_temp,na.rm=T))
@@ -144,7 +153,7 @@ dat$crop=as.factor(dat$crop)
 dat$yield_C=as.numeric(dat$yield_kg_ha)*0.45*(1/1000) ### Mg C per ha units
 str(dat)
 
-dat$irrigated <- recode_factor(dat$irrigated, t = "Irrigated", 
+dat$irrigated <- recode_factor(dat$irrigated, t = "Irrigated",
                                 f = "Rainfed")
 
 KBS_Precip_Yearly_Summary=read.csv(file=paste0(getwd(),'/KBS_Precip_Yearly_Summary.csv'))
